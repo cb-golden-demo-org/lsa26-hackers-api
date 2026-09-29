@@ -1,4 +1,4 @@
-name: Deploy Hacker News Auth to GKE
+name: Deploy Hacker News API to GKE
 
 on:
   workflow_dispatch:
@@ -34,7 +34,7 @@ jobs:
           location: europe-west1-d
           project_id: cloudbees-sa-emea-demo
 
-      - name: Deploy Auth to GKE
+      - name: Deploy API to GKE
         env:
           ARTIFACT_URL: ${{ inputs.artifact_url }}
           NAMESPACE: ${{ inputs.environment }}
@@ -46,22 +46,22 @@ jobs:
           apiVersion: apps/v1
           kind: Deployment
           metadata:
-            name: hacker-news-auth
+            name: hacker-news-api
             namespace: ${NAMESPACE}
             labels:
-              app: hacker-news-auth
+              app: hacker-news-api
           spec:
             replicas: 1
             selector:
               matchLabels:
-                app: hacker-news-auth
+                app: hacker-news-api
             template:
               metadata:
                 labels:
-                  app: hacker-news-auth
+                  app: hacker-news-api
               spec:
                 containers:
-                - name: hacker-news-auth
+                - name: hacker-news-api
                   image: ${ARTIFACT_URL}
                   imagePullPolicy: Always
                   ports:
@@ -70,11 +70,11 @@ jobs:
           apiVersion: v1
           kind: Service
           metadata:
-            name: hacker-news-auth-svc
+            name: hacker-news-api-svc
             namespace: ${NAMESPACE}
           spec:
             selector:
-              app: hacker-news-auth
+              app: hacker-news-api
             ports:
             - name: http
               port: 80
@@ -83,7 +83,7 @@ jobs:
           apiVersion: networking.k8s.io/v1
           kind: Ingress
           metadata:
-            name: hacker-news-auth
+            name: hacker-news-api
             namespace: ${NAMESPACE}
             annotations:
               cert-manager.io/cluster-issuer: letsencrypt-prod
@@ -96,19 +96,19 @@ jobs:
             - host: ${PUBLIC_HOST}
               http:
                 paths:
-                - path: /${NAMESPACE}/auth(/|$)(.*)
+                - path: /${NAMESPACE}/api(/|$)(.*)
                   pathType: ImplementationSpecific
                   backend:
                     service:
-                      name: hacker-news-auth-svc
+                      name: hacker-news-api-svc
                       port:
                         number: 80
           EOF
 
-          kubectl rollout status deployment/hacker-news-auth -n "$NAMESPACE" --timeout=5m
+          kubectl rollout status deployment/hacker-news-api -n "$NAMESPACE" --timeout=5m
 
       - name: Verify pods
         env:
           NAMESPACE: ${{ inputs.environment }}
         run: |
-          kubectl get pods -n "$NAMESPACE" -l app=hacker-news-auth
+          kubectl get pods -n "$NAMESPACE" -l app=hacker-news-api
