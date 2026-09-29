@@ -32,11 +32,11 @@ jobs:
             ${{ steps.RunUnitTest.outputs.CODE_COVERAGE }}
           format: MARKDOWN
   build:
-    uses: cb-golden-demo-org/sd-hackers-workflows/container-build.yaml
+    uses: cb-golden-demo-org/lsa26-hackers-workflows/container-build.yaml
     vars: inherit
     secrets: inherit
     with:
       appName: hackers-api
       versionStart: "3.0"
-      repo: cb-golden-demo-org/sd-hackers-api
+      repo: cb-golden-demo-org/lsa26-hackers-api
     needs: test
